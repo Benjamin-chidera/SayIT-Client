@@ -12,7 +12,7 @@ A simple and interactive SayIT lication built with React and TypeScript. This ap
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript
+- **Frontend**: Next.js 16, TypeScript
 - **Styling**: Tailwind CSS
 - **State Management**: React Hooks
 
