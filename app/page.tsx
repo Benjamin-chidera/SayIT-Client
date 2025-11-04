@@ -53,6 +53,8 @@ export default function Home() {
   const [text, setText] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const lastTranscriptRef = useRef<string>("");
+
 
   useEffect(() => {
     const SpeechRecognition =
@@ -66,21 +68,22 @@ export default function Home() {
       recognition.onresult = (event) => {
         let interimTranscript = "";
         let finalTranscript = "";
+      
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+          const result = event.results[i];
+          const transcript = result[0].transcript.trim();
+      
+          if (result.isFinal) {
+            finalTranscript += transcript + " ";
           } else {
-            interimTranscript += event.results[i][0].transcript;
+            interimTranscript += transcript + " ";
           }
         }
-        // To avoid updating state on every interim result, we could debounce or just use final.
-        // For a more responsive feel, we can show interim and replace with final.
-        setText(
-          (prevText) =>
-            prevText.substring(0, prevText.length - interimTranscript.length) +
-            finalTranscript +
-            interimTranscript
-        );
+      
+        if (finalTranscript && finalTranscript !== lastTranscriptRef.current) {
+          setText((prevText) => prevText + finalTranscript);
+          lastTranscriptRef.current = finalTranscript;
+        }
       };
 
       recognition.onend = () => {
@@ -119,8 +122,8 @@ export default function Home() {
   }, [isListening, mode]);
   return (
     <main className=" min-h-screen w-full flex items-center justify-center p-4 sm:p-8 font-sans relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] bg-size-[24px_24px] opacity-30"></div>
-      <div className="relative w-full h-[85vh] max-w-full flex items-center justify-center">
+      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-30"></div>
+      <div className="relative w-full h-[70vh] sm:h-[85vh] max-w-full flex items-center justify-center">
         <div className="bg-transparent rounded-2xl w-full h-full border border-gray-700/50 shadow-2xl shadow-black/30 p-2">
           {mode === WritingMode.Canvas ? (
             <Canvas />

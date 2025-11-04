@@ -5,11 +5,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useSettingsStore } from "@/store/settings.store";
-import LanguageSelector from 'react-language-selector-lite';
-
 
 interface SettingsScreenProps {
   onBack: () => void;
@@ -19,7 +16,6 @@ interface SettingsScreenProps {
 }
 
 const Settings = ({
-  onBack,
   currentLanguage,
   onLanguageChange,
   onDeleteAccount,
