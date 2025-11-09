@@ -3,12 +3,12 @@ import { create } from "zustand";
 interface CanvasState {
   isDrawing: boolean;
   showButtons: boolean;
-  strokes: ImageData[];
+  strokes: string[]; // store data URLs
   canvasRef: HTMLCanvasElement | null;
   setIsDrawing: (isDrawing: boolean) => void;
   setShowButtons: (show: boolean) => void;
-  addStroke: (stroke: ImageData) => void;
-  undoLastStroke: () => ImageData | null;
+  addStroke: (stroke: string) => void;
+  undoLastStroke: () => string | null; // returns current top snapshot or null
   clearStrokes: () => void;
   setCanvasRef: (canvas: HTMLCanvasElement) => void;
   uploadCanvas: () => Promise<void>;
@@ -23,13 +23,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   setShowButtons: (show) => set({ showButtons: show }),
   addStroke: (stroke) =>
     set((state) => ({ strokes: [...state.strokes, stroke] })),
-  undoLastStroke: () =>
-    set((state) => {
-      const strokes = [...state.strokes];
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const lastStroke = strokes.pop() || null;
-      return { strokes };
-    }),
+  undoLastStroke: () => {
+    const strokes = [...get().strokes];
+    strokes.pop();
+    set({ strokes });
+    const last = strokes.length ? strokes[strokes.length - 1] : null;
+    return last;
+  },
   clearStrokes: () => set({ strokes: [] }),
   setCanvasRef: (canvas) => set({ canvasRef: canvas }),
   uploadCanvas: async () => {
@@ -46,16 +46,20 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       }
 
       const formData = new FormData();
-      formData.append("image", blob, "canvas-image.png");
+      formData.append("file", blob, "canvas-image.png");
 
       try {
-        const response = await fetch("https://your-backend-url.com/upload", {
+        const response = await fetch("http://127.0.0.1:8000/uploadCanvasImg-to-text", {
           method: "POST",
           body: formData,
         });
 
         if (response.ok) {
           console.log("Canvas uploaded successfully!");
+          const data = await response.json();
+          console.log("Response from server:", data.text);
+          alert(data.text);
+
         } else {
           console.error("Failed to upload canvas.");
         }

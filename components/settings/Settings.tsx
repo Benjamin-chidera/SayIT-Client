@@ -8,19 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { useSettingsStore } from "@/store/settings.store";
 
-interface SettingsScreenProps {
-  onBack: () => void;
-  currentLanguage: string;
-  onLanguageChange: (language: string) => void;
-  onDeleteAccount: () => void;
-}
-
-const Settings = ({
-  currentLanguage,
-  onLanguageChange,
-  onDeleteAccount,
-}: SettingsScreenProps) => {
-  const { open, setOpen } = useSettingsStore();
+const Settings = () => {
+  const { open, setOpen, currentLanguage, onLanguageChange, onDeleteAccount } =
+    useSettingsStore();
 
   const handleDelete = () => {
     if (

@@ -7,6 +7,7 @@ import Toolbar from "@/components/toolbar/toolbar";
 import { WritingMode } from "@/types/toolbar.types";
 import Settings from "@/components/settings/Settings";
 
+
 // Fix for TypeScript: Add Web Speech API types for browser compatibility
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
@@ -55,7 +56,6 @@ export default function Home() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const lastTranscriptRef = useRef<string>("");
 
-
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -66,20 +66,17 @@ export default function Home() {
       recognition.lang = "en-US";
 
       recognition.onresult = (event) => {
-        let interimTranscript = "";
         let finalTranscript = "";
-      
+
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const result = event.results[i];
           const transcript = result[0].transcript.trim();
-      
+
           if (result.isFinal) {
             finalTranscript += transcript + " ";
-          } else {
-            interimTranscript += transcript + " ";
           }
         }
-      
+
         if (finalTranscript && finalTranscript !== lastTranscriptRef.current) {
           setText((prevText) => prevText + finalTranscript);
           lastTranscriptRef.current = finalTranscript;
@@ -110,20 +107,21 @@ export default function Home() {
     }
 
     if (isListening) {
-      recognition.stop();
+      recognition?.stop();
       setIsListening(false);
     } else {
       if (mode === WritingMode.Canvas) {
         setMode(WritingMode.Typing);
       }
-      recognition.start();
+      recognition?.start();
       setIsListening(true);
     }
   }, [isListening, mode]);
+
   return (
     <main className=" min-h-screen w-full flex items-center justify-center p-4 sm:p-8 font-sans relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-30"></div>
-      <div className="relative w-full h-[70vh] sm:h-[85vh] max-w-full flex items-center justify-center">
+      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] bg-size-[24px_24px] opacity-30"></div>
+      <div className="relative w-full h-[90vh]  max-w-full flex items-center justify-center">
         <div className="bg-transparent rounded-2xl w-full h-full border border-gray-700/50 shadow-2xl shadow-black/30 p-2">
           {mode === WritingMode.Canvas ? (
             <Canvas />
