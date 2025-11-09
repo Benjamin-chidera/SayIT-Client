@@ -1,6 +1,7 @@
 import { useCanvasStore } from "@/store/canvas.store";
 import { Eraser, Undo } from "lucide-react";
 import React, { useRef, useEffect } from "react";
+import { ToggleFullscreen } from "../fullscreen/full-screen";
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -16,7 +17,7 @@ const Canvas = () => {
   const {
     isDrawing,
     showButtons,
-    strokes,
+    // strokes,
     setIsDrawing,
     setShowButtons,
     addStroke,
@@ -147,7 +148,7 @@ const Canvas = () => {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-visible">
       <canvas
         ref={canvasRef}
         onMouseDown={startDrawing}
@@ -160,26 +161,34 @@ const Canvas = () => {
         className="w-full h-full rounded-xl cursor-crosshair"
         style={{ touchAction: "none", display: "block" }}
       />
-      {showButtons && (
-        <div className="absolute -top-9 left-3 flex gap-4">
-          <button
-            type="button"
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center backdrop-blur-sm border border-gray-700/50 transition-all duration-300 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-            onClick={handleUndo}
-            title="Undo"
-          >
-            <Undo size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={clearCanvas}
-            title="Clear"
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center backdrop-blur-sm border border-gray-700/50 transition-all duration-300 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-          >
-            <Eraser size={18} />
-          </button>
-        </div>
-      )}
+      <section>
+        {showButtons && (
+          <div className="absolute top-3 right-1 flex gap-4 z-20">
+            <button
+              type="button"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center backdrop-blur-sm border  text-white border-gray-700/50 transition-all duration-300 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              onClick={handleUndo}
+              title="Undo"
+            >
+              <Undo size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={clearCanvas}
+              title="Clear"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center backdrop-blur-sm border border-gray-700/50 transition-all duration-300 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50  text-white"
+            >
+              <Eraser size={18} />
+            </button>
+          </div>
+        )}
+
+        {/* <div className="absolute top-3 left-3 md:flex gap-4 z-20 hidden"> */}
+          <div className="absolute top-3 left-3 flex gap-4 z-20">
+            <ToggleFullscreen />
+          </div>
+        {/* </div> */}
+      </section>
     </div>
   );
 };

@@ -6,7 +6,7 @@ import Canvas from "@/components/canvas/Canvas";
 import Toolbar from "@/components/toolbar/toolbar";
 import { WritingMode } from "@/types/toolbar.types";
 import Settings from "@/components/settings/Settings";
-
+import { ToggleFullscreen } from "@/components/fullscreen/full-screen";
 
 // Fix for TypeScript: Add Web Speech API types for browser compatibility
 interface SpeechRecognitionAlternative {
@@ -66,6 +66,7 @@ export default function Home() {
       recognition.lang = "en-US";
 
       recognition.onresult = (event) => {
+        let interimTranscript = "";
         let finalTranscript = "";
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -74,6 +75,8 @@ export default function Home() {
 
           if (result.isFinal) {
             finalTranscript += transcript + " ";
+          } else {
+            interimTranscript += transcript + " ";
           }
         }
 
@@ -122,7 +125,7 @@ export default function Home() {
     <main className=" min-h-screen w-full flex items-center justify-center p-4 sm:p-8 font-sans relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] bg-size-[24px_24px] opacity-30"></div>
       <div className="relative w-full h-[90vh]  max-w-full flex items-center justify-center">
-        <div className="bg-transparent rounded-2xl w-full h-full border border-gray-700/50 shadow-2xl shadow-black/30 p-2">
+        <div className="bg-transparent rounded-2xl w-full h-full border border-gray-700/50 shadow-2xl shadow-black/30 overflow-hidden">
           {mode === WritingMode.Canvas ? (
             <Canvas />
           ) : (
