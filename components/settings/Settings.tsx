@@ -7,10 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useSettingsStore } from "@/store/settings.store";
+import { useCanvasStore } from "@/store/canvas.store";
 
 const Settings = () => {
   const { open, setOpen, currentLanguage, onLanguageChange, onDeleteAccount } =
     useSettingsStore();
+    const { mode, setMode } = useCanvasStore();
 
   const handleDelete = () => {
     if (
@@ -39,7 +41,7 @@ const Settings = () => {
           <DialogHeader>
             <DialogTitle className=" text-white">Settings</DialogTitle>
             <DialogDescription>
-              <div className="space-y-8">
+              <section className="space-y-8">
                 {/* Language Selection */}
                 <div>
                   <label
@@ -76,6 +78,39 @@ const Settings = () => {
                   </div>
                 </div>
 
+                {/* mode selection -> pen/hand */}
+                {/* <div>
+                  <label
+                    htmlFor="language-select"
+                    className="block text-lg font-medium text-gray-300 mb-2"
+                  >
+                    Interaction Mode
+                  </label>
+                    <p className="text-sm text-gray-500 mb-3">
+                      Choose the interaction mode for the canvas. eg pen or hand.
+                    </p>
+                  <div className="relative">
+                    <select
+                      id="mode-select"
+                      value={mode}
+                      onChange={(e) => setMode(e.target.value as "pen" | "hand")}
+                      className="w-full appearance-none bg-gray-800/80 border border-gray-700 rounded-lg py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="pen">Pen Mode</option>
+                      <option value="hand">Hand Mode</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                      <svg
+                        className="fill-current h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div> */}
+
                 {/* Account Deletion */}
                 <div className="border-t border-gray-700/50 pt-8">
                   <h2 className="text-lg font-medium text-red-400">
@@ -91,7 +126,7 @@ const Settings = () => {
                     Delete Account
                   </button>
                 </div>
-              </div>
+              </section>
             </DialogDescription>
           </DialogHeader>
         </DialogContent>

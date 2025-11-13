@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { Maximize2, Minimize2 } from "lucide-react"; // optional, from lucide-react icons
 import { toggleFullscreen } from "@/lib/fullscreen";
+import { useCanvasStore } from "@/store/canvas.store";
 
 export const ToggleFullscreen = () => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const { isFullscreen, setIsFullscreen } = useCanvasStore();
+
+  console.log("Fullscreen state:", isFullscreen);
 
   const handleToggle = () => {
     toggleFullscreen();
-    setIsFullscreen((prev) => !prev);
+    setIsFullscreen(!isFullscreen);
   };
 
   return (

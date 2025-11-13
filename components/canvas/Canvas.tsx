@@ -2,11 +2,12 @@ import { useCanvasStore } from "@/store/canvas.store";
 import { Eraser, Undo } from "lucide-react";
 import React, { useRef, useEffect } from "react";
 import { ToggleFullscreen } from "../fullscreen/full-screen";
+import { CanvasMode } from "./Mode";
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const { setCanvasRef } = useCanvasStore();
+  const { setCanvasRef, mode } = useCanvasStore();
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -24,6 +25,11 @@ const Canvas = () => {
     undoLastStroke,
     clearStrokes,
   } = useCanvasStore();
+
+  // track active pointer so other pointers (different pointerType) are ignored
+  const activePointerIdRef = useRef<number | null>(null);
+  const activePointerTypeRef = useRef<string | null>(null);
+  const isRenderingRef = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,19 +51,74 @@ const Canvas = () => {
     contextRef.current = context;
   }, []);
 
-  const startDrawing = ({
-    nativeEvent,
-  }: React.MouseEvent<HTMLCanvasElement>) => {
-    const { offsetX, offsetY } = nativeEvent;
-    if (contextRef.current) {
-      contextRef.current.beginPath();
-      contextRef.current.moveTo(offsetX, offsetY);
-      setIsDrawing(true);
-      setShowButtons(true);
-    }
+  // Helper to get coords relative to canvas (CSS pixels)
+  const getCoordsFromClient = (clientX: number, clientY: number) => {
+    const rect = canvasRef.current!.getBoundingClientRect();
+    return { x: clientX - rect.left, y: clientY - rect.top };
   };
 
-  const finishDrawing = () => {
+  // Accept pointer only if its type matches current mode
+  const isPointerAllowedByMode = (pointerType: string) => {
+    if (mode === "pen") {
+      return pointerType === "pen";
+    }
+    // hand mode: accept touch and mouse (finger or stylus in touch mode should be 'touch')
+    return pointerType === "touch" || pointerType === "mouse";
+  };
+
+  const startDrawingPointer = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Only start if pointer type is allowed by mode
+    if (!isPointerAllowedByMode(e.pointerType)) return;
+
+    e.preventDefault();
+    const coords = getCoordsFromClient(e.clientX, e.clientY);
+    const ctx = contextRef.current;
+    if (!ctx) return;
+
+    // set active pointer so we ignore other pointer types/ids
+    activePointerIdRef.current = e.pointerId;
+    activePointerTypeRef.current = e.pointerType;
+
+    // capture pointer so move/up events continue even if pointer leaves element
+    try {
+      canvasRef.current?.setPointerCapture(e.pointerId);
+    } catch {}
+    ctx.beginPath();
+    ctx.moveTo(coords.x, coords.y);
+    setIsDrawing(true);
+    setShowButtons(true);
+  };
+
+  const drawPointer = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // ignore if not the active pointer
+    if (
+      activePointerIdRef.current == null ||
+      e.pointerId !== activePointerIdRef.current
+    )
+      return;
+    if (e.pointerType !== activePointerTypeRef.current) return; // extra guard
+    if (!isDrawing || !contextRef.current) return;
+
+    e.preventDefault();
+    const coords = getCoordsFromClient(e.clientX, e.clientY);
+    contextRef.current.lineTo(coords.x, coords.y);
+    contextRef.current.stroke();
+  };
+
+  const endDrawingPointer = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // only end if it's the active pointer
+    if (
+      activePointerIdRef.current == null ||
+      e.pointerId !== activePointerIdRef.current
+    )
+      return;
+
+    try {
+      canvasRef.current?.releasePointerCapture(e.pointerId);
+    } catch {}
+    activePointerIdRef.current = null;
+    activePointerTypeRef.current = null;
+
     if (contextRef.current) {
       contextRef.current.closePath();
     }
@@ -69,14 +130,6 @@ const Canvas = () => {
       const dataUrl = canvas.toDataURL("image/png");
       addStroke(dataUrl);
     }
-  };
-
-  const draw = ({ nativeEvent }: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !contextRef.current) return;
-
-    const { offsetX, offsetY } = nativeEvent;
-    contextRef.current.lineTo(offsetX, offsetY);
-    contextRef.current.stroke();
   };
 
   const clearCanvas = () => {
@@ -91,74 +144,79 @@ const Canvas = () => {
     clearStrokes();
   };
 
-  // Touch handlers (prevent default to stop scrolling/up gestures)
-  const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (!touch || !contextRef.current) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    contextRef.current.beginPath();
-    contextRef.current.moveTo(
-      touch.clientX - rect.left,
-      touch.clientY - rect.top
-    );
-    setIsDrawing(true);
-    setShowButtons(true);
-  };
-
-  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    if (!isDrawing || !contextRef.current) return;
-    const touch = e.touches[0];
-    if (!touch) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    contextRef.current.lineTo(
-      touch.clientX - rect.left,
-      touch.clientY - rect.top
-    );
-    contextRef.current.stroke();
-  };
-
-  const finishDrawingTouch = () => {
-    finishDrawing();
-  };
-
   // Undo: remove last snapshot from store and redraw remaining top snapshot (or clear)
   const handleUndo = () => {
+    if (isRenderingRef.current) return; // avoid overlapping undos
+
+    // stop any drawing in progress
+    setIsDrawing(false);
+    const activeId = activePointerIdRef.current;
+    if (activeId && canvasRef.current) {
+      try {
+        canvasRef.current.releasePointerCapture(activeId);
+      } catch {}
+    }
+    activePointerIdRef.current = null;
+    activePointerTypeRef.current = null;
+
     const remainingTop = undoLastStroke(); // store now returns remaining top snapshot or null
     const canvas = canvasRef.current;
     const ctx = contextRef.current;
     if (!canvas || !ctx) return;
     const rect = canvas.getBoundingClientRect();
-    // clear first
-    ctx.clearRect(0, 0, rect.width, rect.height);
-    if (remainingTop) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, rect.width, rect.height);
-      };
-      img.src = remainingTop;
-      setShowButtons(true);
-    } else {
-      // nothing left after undo
+
+    // Prevent user interactions while we redraw to avoid visual glitches
+    isRenderingRef.current = true;
+    const prevPointerEvents = canvas.style.pointerEvents;
+    canvas.style.pointerEvents = "none";
+
+    // ensure drawing style and crisp redraw
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#a78bfa";
+    ctx.lineWidth = 3;
+    ctx.imageSmoothingEnabled = false;
+
+    if (!remainingTop) {
+      // clear and finish
+      ctx.clearRect(0, 0, rect.width, rect.height);
       setShowButtons(false);
+      isRenderingRef.current = false;
+      canvas.style.pointerEvents = prevPointerEvents || "auto";
+      return;
     }
+
+    // Load the snapshot and draw it inside rAF to avoid layout thrash/flicker
+    const img = new Image();
+    img.onload = () => {
+      requestAnimationFrame(() => {
+        // draw over canvas (no intermediate clear needed — drawImage replaces pixels)
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        setShowButtons(true);
+        isRenderingRef.current = false;
+        canvas.style.pointerEvents = prevPointerEvents || "auto";
+      });
+    };
+    img.onerror = () => {
+      console.error("Failed to load snapshot for undo.");
+      isRenderingRef.current = false;
+      canvas.style.pointerEvents = prevPointerEvents || "auto";
+    };
+    img.src = remainingTop;
   };
 
   return (
     <div className="relative w-full h-full overflow-visible">
       <canvas
         ref={canvasRef}
-        onMouseDown={startDrawing}
-        onMouseUp={finishDrawing}
-        onMouseMove={draw}
-        onMouseLeave={finishDrawing}
-        onTouchStart={startDrawingTouch}
-        onTouchMove={drawTouch}
-        onTouchEnd={finishDrawingTouch}
-        className="w-full h-full rounded-xl cursor-crosshair"
+        onPointerDown={startDrawingPointer}
+        onPointerMove={drawPointer}
+        onPointerUp={endDrawingPointer}
+        onPointerCancel={endDrawingPointer}
+        onPointerLeave={endDrawingPointer}
+        className={`w-full h-full rounded-xl ${
+          mode === "hand" ? "cursor-grab" : "cursor-crosshair"
+        }`}
         style={{ touchAction: "none", display: "block" }}
       />
       <section>
@@ -183,11 +241,13 @@ const Canvas = () => {
           </div>
         )}
 
-        {/* <div className="absolute top-3 left-3 md:flex gap-4 z-20 hidden"> */}
-          <div className="absolute top-3 left-3 flex gap-4 z-20">
-            <ToggleFullscreen />
-          </div>
-        {/* </div> */}
+        <div className="absolute top-3 left-3 flex gap-4 z-20">
+          <ToggleFullscreen />
+        </div>
+
+        <div className="absolute bottom-4 left-4 z-20">
+          <CanvasMode />
+        </div>
       </section>
     </div>
   );
