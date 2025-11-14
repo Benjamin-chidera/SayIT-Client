@@ -75,6 +75,8 @@
 
 import { create } from "zustand";
 import axios from "axios";
+// for the Text to Speech
+import { KokoroTTS } from "kokoro-js";
 
 interface CanvasState {
   isDrawing: boolean;
@@ -88,6 +90,7 @@ interface CanvasState {
   clearStrokes: () => void;
   setCanvasRef: (canvas: HTMLCanvasElement) => void;
   uploadCanvas: () => Promise<void>;
+  speech_text: string; // for TTS
 
   // this is to switch btw pen and hand mode
   mode: "pen" | "hand";
@@ -95,9 +98,14 @@ interface CanvasState {
 
   isFullscreen: boolean;
   setIsFullscreen: (isFullscreen: boolean) => void;
+
+  //
+  // Speak: () => Promise<void>;
+  // speak: () => void;
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
+  speech_text: "",
   isDrawing: false,
   showButtons: false,
   strokes: [],
@@ -188,7 +196,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         if (response.status === 201 || response.status === 200) {
           console.log("Canvas uploaded successfully!");
           const data = response.data;
-          alert(data?.text ?? "Upload succeeded");
+          // alert(data?.text ?? "Upload succeeded");
+
+          // Text to Speech using Web Speech API
+          const utter = new SpeechSynthesisUtterance(data?.text ?? "");
+          utter.lang = "en-US";
+          utter.rate = 0.5; // speed 0.5 - 2
+          utter.pitch = 1;
+          window.speechSynthesis.speak(utter);
+          // set({ speech_text: data?.text ?? "" });
         } else {
           console.error(
             "Failed to upload canvas:",
@@ -226,4 +242,30 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       }
     }, "image/png");
   },
+
+  // this is for TTS
+  // Speak: async () => {
+  //   try {
+  //     const text = get().speech_text;
+  //     if (!text) {
+  //       console.warn("No text to speak.");
+  //       return;
+  //     }
+  //     const utter = new SpeechSynthesisUtterance(text);
+  //     utter.lang = "en-US";
+  //     utter.rate = 1; // speed 0.5 - 2
+  //     utter.pitch = 1;
+  //     window.speechSynthesis.speak(utter);
+  //   } catch (error) {
+  //     console.error("Speak failed:", error);
+  //   }
+  // },
+  // speak: () => {
+  //   const text = get().speech_text;
+  //   const utter = new SpeechSynthesisUtterance(text);
+  //   utter.lang = "en-US";
+  //   utter.rate = 1; // speed 0.5 - 2
+  //   utter.pitch = 1;
+  //   window.speechSynthesis.speak(utter);
+  // }
 }));

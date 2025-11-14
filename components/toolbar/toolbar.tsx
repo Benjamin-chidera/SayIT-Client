@@ -27,10 +27,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onSpeechAction,
 }) => {
   const { setOpen } = useSettingsStore();
-  const { uploadCanvas } = useCanvasStore();
+  const { uploadCanvas, speak } = useCanvasStore();
+
+  // const speak = (text: string) => {
+  //   const utter = new SpeechSynthesisUtterance(text);
+  //   utter.lang = "en-US";
+  //   utter.rate = 1; // speed 0.5 - 2
+  //   utter.pitch = 1;
+  //   window.speechSynthesis.speak(utter);
+  // };
 
   const handleUpload = () => {
     uploadCanvas();
+    // speak();
+    // Speak();
+    // For demonstration, we call TTS here
+    // Speak("Hello, this is a test speech.");
   };
 
   return (

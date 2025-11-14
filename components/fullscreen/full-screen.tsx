@@ -7,8 +7,6 @@ import { useCanvasStore } from "@/store/canvas.store";
 export const ToggleFullscreen = () => {
   const { isFullscreen, setIsFullscreen } = useCanvasStore();
 
-  console.log("Fullscreen state:", isFullscreen);
-
   const handleToggle = () => {
     toggleFullscreen();
     setIsFullscreen(!isFullscreen);
