@@ -9,7 +9,7 @@ export const auth = betterAuth({
     port: 3306,
     waitForConnections: true,
     user: "root",
-    password: "Standout070801?",
+    password: process.env.DB_PASSWORD as string,
     database: "sayit",
   }),
   emailAndPassword: {
