@@ -72,9 +72,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
       <IconButton onClick={() => setOpen(true)} tooltip="Settings">
         <SettingsIcon />
       </IconButton>
-      <IconButton onClick={() => alert("Logout clicked!")} tooltip="Logout">
+      {/* <IconButton onClick={() => alert("Logout clicked!")} tooltip="Logout">
         <LogoutIcon />
-      </IconButton>
+      </IconButton> */}
     </div>
   );
 };

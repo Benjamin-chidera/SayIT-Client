@@ -1,11 +1,13 @@
+"use client";
+
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { GoogleIcon, EmailIcon, LogoIcon } from "@/constants";
+import { signInWithGoogle } from "@/lib/auth-clients";
 
-interface AuthScreenProps {
-  onSignIn: () => void;
-}
 
-const AuthScreen: React.FC<AuthScreenProps> = ({ onSignIn }) => {
+
+const AuthScreen = () => {
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center p-4 text-center text-white font-sans relative overflow-hidden antialiased">
       {/* <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(59,130,246,0.1)_0%,transparent_70%)]"></div> */}
@@ -19,19 +21,20 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onSignIn }) => {
 
         <div className="space-y-4">
           <button
-            onClick={onSignIn}
-            className="w-full flex items-center justify-center px-6 py-3 bg-gray-800/80 border border-gray-700 rounded-lg font-medium text-gray-200 hover:bg-gray-700/80 transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-gray-500/50"
+            onClick={signInWithGoogle}
+            type="submit"
+            className="w-full flex items-center justify-center px-6 py-3 bg-gray-800/80 border border-gray-700 rounded-lg font-medium text-gray-200 hover:bg-gray-700/80 transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-gray-500/50 cursor-pointer"
           >
             <GoogleIcon />
             Continue with Google
           </button>
-          <button
+          {/* <button
             onClick={onSignIn}
             className="w-full flex items-center justify-center px-6 py-3 bg-gray-800/80 border border-gray-700 rounded-lg font-medium text-gray-200 hover:bg-gray-700/80 transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-gray-500/50"
           >
             <EmailIcon />
             Continue with Email
-          </button>
+          </button> */}
         </div>
 
         <p className="mt-8 text-xs text-gray-500">
