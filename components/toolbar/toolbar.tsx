@@ -3,7 +3,7 @@ import React from "react";
 import {
   MicrophoneIcon,
   SettingsIcon,
-  LogoutIcon,
+  // LogoutIcon,
   KeyboardIcon,
   PenIcon,
 } from "@/constants";
@@ -27,7 +27,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onSpeechAction,
 }) => {
   const { setOpen } = useSettingsStore();
-  const { uploadCanvas, speak } = useCanvasStore();
+  const {
+    uploadCanvas,
+    // speak
+  } = useCanvasStore();
 
   // const speak = (text: string) => {
   //   const utter = new SpeechSynthesisUtterance(text);
