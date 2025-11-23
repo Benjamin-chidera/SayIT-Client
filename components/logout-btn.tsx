@@ -17,12 +17,12 @@ interface LogoutBtnProps {
       image?: string | null;
       email?: string | null;
     };
-  } ;
+  };
 }
 
 export const LogoutBtn = async ({ session }: LogoutBtnProps) => {
   return (
-    <main className=" fixed mt-10 right-12 cursor-pointer z-50 bottom-10">
+    <main className=" fixed mt-10 right-6 md:right-10 cursor-pointer z-50 top-20">
       <DropdownMenu>
         <DropdownMenuTrigger>
           <Avatar>
