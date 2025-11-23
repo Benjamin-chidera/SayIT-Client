@@ -18,7 +18,11 @@ import {
 import { useSettingsStore } from "@/store/settings.store";
 
 const Settings = () => {
-  const { open, setOpen, currentLanguage, onLanguageChange, onDeleteAccount } =
+  const { open, setOpen, 
+    // currentLanguage, 
+    // onLanguageChange, 
+    // onDeleteAccount
+   } =
     useSettingsStore();
 
   const handleDelete = () => {
@@ -71,7 +75,7 @@ const Settings = () => {
                           <SelectItem
                             key={lang.code}
                             value={lang.code}
-                            onClick={() => onLanguageChange(lang.code)}
+                            // onClick={() => onLanguageChange(lang.code)}
                           >
                             {lang.name}
                           </SelectItem>
