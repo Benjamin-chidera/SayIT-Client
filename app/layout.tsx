@@ -68,3 +68,8 @@ export default async function RootLayout({
     </html>
   );
 }
+
+
+//  npx @better-auth/cli generate
+
+// npx @better-auth/cli migrate
