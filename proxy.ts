@@ -1,19 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+
 export async function proxy(request: NextRequest) {
+  // convert headers to plain object for auth client
+  const headersObj = Object.fromEntries(request.headers.entries());
+
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: headersObj,
   });
-  // THIS IS NOT SECURE!
-  // This is the recommended approach to optimistically redirect users
-  // We recommend handling auth checks in each page/route
-  if (!session) {
+
+  const { pathname } = new URL(request.url);
+
+  // If not authenticated, force to signIn (but allow access to signIn itself)
+  if (!session && pathname !== "/signIn") {
     return NextResponse.redirect(new URL("/signIn", request.url));
   }
+
+  // If authenticated, prevent visiting the signIn page
+  if (session && pathname === "/signIn") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
   return NextResponse.next();
 }
+
 export const config = {
-  runtime: "nodejs", // Required for auth.api calls
-  matcher: ["/"], // Specify the routes the middleware applies to
+  matcher: ["/", "/signIn"],
 };
