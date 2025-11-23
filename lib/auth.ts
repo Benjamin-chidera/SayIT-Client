@@ -5,12 +5,12 @@ import { createPool } from "mysql2/promise";
 export const auth = betterAuth({
   //...your config
   database: createPool({
-    host: "localhost",
+    host: process.env.DB_HOST as string,
     port: 3306,
     waitForConnections: true,
-    user: "root",
+    user: process.env.DB_USER as string,
     password: process.env.DB_PASSWORD as string,
-    database: "sayit",
+    database: process.env.DB_NAME as string,
   }),
   emailAndPassword: {
     enabled: true,
