@@ -2,16 +2,38 @@
 
 import { createContext, useContext } from "react";
 
-const SessionContext = createContext<unknown>(null);
+interface SessionContextType {
+  session: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    expiresAt: Date;
+    token: string;
+    ipAddress?: string | null | undefined;
+    userAgent?: string | null | undefined;
+  };
+  user: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    emailVerified: boolean;
+    email: string;
+    name: string;
+    // language: string | null;
+    // gender: string | null;
+  };
+}
+
+const SessionContext = createContext<SessionContextType | null>(null);
 
 export function SessionProvider({
   children,
   session,
 }: {
   children: React.ReactNode;
-  session: unknown;
+  session: SessionContextType | null;
 }) {
-
   return (
     <SessionContext.Provider value={session}>
       {children}
@@ -20,5 +42,9 @@ export function SessionProvider({
 }
 
 export function useSession() {
-  return useContext(SessionContext);
+  const context = useContext(SessionContext);
+  if (!context) {
+    throw new Error("useSession must be used within a SessionProvider");
+  }
+  return context;
 }

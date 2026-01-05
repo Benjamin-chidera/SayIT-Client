@@ -55,9 +55,9 @@ export default function Home() {
   const lastTranscriptRef = useRef<string>("");
   const { isFullscreen, text, setText } = useCanvasStore();
 
-//   useEffect(() => {
-//   useCanvasStore.getState().getTTS();
-// }, []);
+  //   useEffect(() => {
+  //   useCanvasStore.getState().getTTS();
+  // }, []);
 
   useEffect(() => {
     const SpeechRecognition =
@@ -80,8 +80,13 @@ export default function Home() {
           }
         }
 
+        // if (finalTranscript && finalTranscript !== lastTranscriptRef.current) {
+        //   setText((prevText) => prevText + finalTranscript);
+        //   lastTranscriptRef.current = finalTranscript;
+        // }
+
         if (finalTranscript && finalTranscript !== lastTranscriptRef.current) {
-          setText((prevText) => prevText + finalTranscript);
+          setText(text + finalTranscript);
           lastTranscriptRef.current = finalTranscript;
         }
       };
