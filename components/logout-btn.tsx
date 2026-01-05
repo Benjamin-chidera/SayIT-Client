@@ -13,6 +13,7 @@ import { signOutAction } from "@/app/actions/auth";
 interface LogoutBtnProps {
   session: {
     user: {
+      id : string;
       name: string;
       image?: string | null;
       email?: string | null;

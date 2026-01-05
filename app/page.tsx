@@ -50,11 +50,14 @@ declare global {
 
 export default function Home() {
   const [mode, setMode] = useState<WritingMode>(WritingMode.Canvas);
-  const [text, setText] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const lastTranscriptRef = useRef<string>("");
-  const { isFullscreen } = useCanvasStore();
+  const { isFullscreen, text, setText } = useCanvasStore();
+
+//   useEffect(() => {
+//   useCanvasStore.getState().getTTS();
+// }, []);
 
   useEffect(() => {
     const SpeechRecognition =
@@ -134,7 +137,7 @@ export default function Home() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Start typing or use the microphone..."
-              className="w-full h-full bg-transparent text-gray-200 text-lg p-6 rounded-xl focus:outline-none resize-none placeholder-gray-500"
+              className="w-full sm:h-[70vh] md:h-[95vh] bg-transparent text-gray-200 text-lg p-6 rounded-xl focus:outline-none resize-none placeholder-gray-500"
             />
           )}
         </div>

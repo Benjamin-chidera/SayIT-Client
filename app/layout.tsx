@@ -4,6 +4,7 @@ import "./globals.css";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { LogoutBtn } from "@/components/logout-btn";
+import { SessionProvider } from "@/components/session-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,8 +32,6 @@ export default async function RootLayout({
     headers: Object.fromEntries(reqHeaders.entries()),
   });
 
-  // console.log(session);
-
   return (
     <html lang="en" className="overflow-hidden">
       <body
@@ -58,17 +57,18 @@ export default async function RootLayout({
           .animation-delay-4000 { animation-delay: 4s; }
         `}</style>
 
-        <main className="mx-auto ">
-          <div className="">
-            {session && <LogoutBtn session={session} />}
-            {children}
-          </div>
-        </main>
+        <SessionProvider session={session}>
+          <main className="mx-auto ">
+            <div className="">
+              {session && <LogoutBtn session={session} />}
+              {children}
+            </div>
+          </main>
+        </SessionProvider>
       </body>
     </html>
   );
 }
-
 
 //  npx @better-auth/cli generate
 
