@@ -16,24 +16,22 @@ import {
 } from "@/components/ui/select";
 
 import { useSettingsStore } from "@/store/settings.store";
+import { Gender } from "./gender";
+import { DeleteAccount } from "./delete-account";
+import { Button } from "../ui/button";
+import { useSession } from "../session-provider";
 
 const Settings = () => {
-  const { open, setOpen, 
-    // currentLanguage, 
-    // onLanguageChange, 
+   const session = useSession();
+  const {
+    open,
+    setOpen,
+    updateUserSettings,
+    loading,
+    // currentLanguage,
+    // onLanguageChange,
     // onDeleteAccount
-   } =
-    useSettingsStore();
-
-  const handleDelete = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete your account? This action is irreversible."
-      )
-    ) {
-      //   onDeleteAccount();
-    }
-  };
+  } = useSettingsStore();
 
   const languages = [
     { code: "en-US", name: "English (United States)" },
@@ -83,23 +81,24 @@ const Settings = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
                 </div>
+                {/* Language Selection */}
+
+                {/* Gender Selection */}
+                <div>
+                  <Gender />
+                </div>
+                {/* Gender Selection */}
+
+                {/* save */}
+                <Button onClick={() => updateUserSettings(session?.user?.id)} disabled={loading}>
+                  {loading ? "Saving..." : "Save"}
+                </Button>
+                {/* save */}
 
                 {/* Account Deletion */}
-                <div className="border-t border-gray-700/50 pt-5">
-                  <h2 className="text-lg font-medium text-red-400">
-                    Danger Zone
-                  </h2>
-                  <p className="text-sm text-gray-500 mb-4">
-                    This action cannot be undone.
-                  </p>
-                  <button
-                    onClick={handleDelete}
-                    className="w-full px-6 py-3 bg-red-600/20 border border-red-500/50 rounded-lg font-medium text-red-400 hover:bg-red-600/30 hover:text-red-300 transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-red-500/50"
-                  >
-                    Delete Account
-                  </button>
+                <div>
+                  <DeleteAccount />
                 </div>
               </section>
             </DialogDescription>

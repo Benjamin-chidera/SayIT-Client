@@ -1,84 +1,11 @@
-// import { create } from "zustand";
-// import axios from "axios";
-
-// interface CanvasState {
-//   isDrawing: boolean;
-//   showButtons: boolean;
-//   strokes: string[]; // store data URLs
-//   canvasRef: HTMLCanvasElement | null;
-//   setIsDrawing: (isDrawing: boolean) => void;
-//   setShowButtons: (show: boolean) => void;
-//   addStroke: (stroke: string) => void;
-//   undoLastStroke: () => string | null; // returns current top snapshot or null
-//   clearStrokes: () => void;
-//   setCanvasRef: (canvas: HTMLCanvasElement) => void;
-//   uploadCanvas: () => Promise<void>;
-// }
-
-// export const useCanvasStore = create<CanvasState>((set, get) => ({
-//   isDrawing: false,
-//   showButtons: false,
-//   strokes: [],
-//   canvasRef: null,
-//   setIsDrawing: (isDrawing) => set({ isDrawing }),
-//   setShowButtons: (show) => set({ showButtons: show }),
-//   addStroke: (stroke) =>
-//     set((state) => ({ strokes: [...state.strokes, stroke] })),
-//   undoLastStroke: () => {
-//     const strokes = [...get().strokes];
-//     strokes.pop();
-//     set({ strokes });
-//     const last = strokes.length ? strokes[strokes.length - 1] : null;
-//     return last;
-//   },
-//   clearStrokes: () => set({ strokes: [] }),
-//   setCanvasRef: (canvas) => set({ canvasRef: canvas }),
-//   uploadCanvas: async () => {
-//     const canvas = get().canvasRef;
-//     if (!canvas) {
-//       console.error("Canvas element is not available.");
-//       return;
-//     }
-
-//     canvas.toBlob(async (blob) => {
-//       if (!blob) {
-//         console.error("Failed to convert canvas to Blob.");
-//         return;
-//       }
-
-//       const formData = new FormData();
-//       formData.append("file", blob, "canvas-image.png");
-
-//       try {
-//         const response = await axios.post("http://0.0.0.0:8000/uploadCanvasImg-to-text", formData, {
-//           headers: {
-//             "Content-Type": "multipart/form-data",
-//           },
-//         });
-
-//         if (response.status === 201) {
-//           console.log("Canvas uploaded successfully!");
-//           const data = response.data;
-//           console.log("Response from server:", data.text);
-//           alert(data.text);
-
-//         } else {
-//           console.error("Failed to upload canvas.");
-//         }
-//       } catch (error) {
-//         console.error("Error uploading canvas:", error);
-//         alert("Error uploading canvas: " + error);
-//       }
-//     }, "image/png");
-//   },
-// }));
-
 import { create } from "zustand";
 import axios from "axios";
 // for the Text to Speech
 import { KokoroTTS } from "kokoro-js";
 
 interface CanvasState {
+  text: string;
+  setText: (text: string) => void;
   isDrawing: boolean;
   showButtons: boolean;
   strokes: string[]; // store data URLs
@@ -90,7 +17,9 @@ interface CanvasState {
   clearStrokes: () => void;
   setCanvasRef: (canvas: HTMLCanvasElement) => void;
   uploadCanvas: () => Promise<void>;
+  uploadText: () => Promise<void>;
   speech_text: string; // for TTS
+  getTTS: () => Promise<KokoroTTS>;
 
   // this is to switch btw pen and hand mode
   mode: "pen" | "hand";
@@ -104,7 +33,11 @@ interface CanvasState {
   // speak: () => void;
 }
 
+let tts: KokoroTTS | null = null;
+
 export const useCanvasStore = create<CanvasState>((set, get) => ({
+  text: "",
+  setText: (text: string) => set({ text }),
   speech_text: "",
   isDrawing: false,
   showButtons: false,
@@ -127,6 +60,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
   clearStrokes: () => set({ strokes: [] }),
   setCanvasRef: (canvas) => set({ canvasRef: canvas }),
+
+  // load the TTS model
+  getTTS: async () => {
+    if (!tts) {
+      tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-ONNX", {
+        dtype: "q8",
+      });
+    }
+    return tts;
+  },
+
   uploadCanvas: async () => {
     const canvas = get().canvasRef;
     if (!canvas) {
@@ -198,12 +142,28 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           const data = response.data;
           // alert(data?.text ?? "Upload succeeded");
 
+          const res = await fetch("/api/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: data?.text ?? "" }),
+          });
+
+          if (!res.ok) {
+            throw new Error("TTS request failed");
+          }
+
+          const audioBlob = await res.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+
+          const audio = new Audio(audioUrl);
+          audio.play();
+
           // Text to Speech using Web Speech API
-          const utter = new SpeechSynthesisUtterance(data?.text ?? "");
-          utter.lang = "en-US";
-          utter.rate = 0.5; // speed 0.5 - 2
-          utter.pitch = 1;
-          window.speechSynthesis.speak(utter);
+          // const utter = new SpeechSynthesisUtterance(data?.text ?? "");
+          // utter.lang = "en-US";
+          // utter.rate = 0.5; // speed 0.5 - 2
+          // utter.pitch = 1;
+          // window.speechSynthesis.speak(utter);
           // set({ speech_text: data?.text ?? "" });
         } else {
           console.error(
@@ -243,29 +203,33 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     }, "image/png");
   },
 
-  // this is for TTS
-  // Speak: async () => {
-  //   try {
-  //     const text = get().speech_text;
-  //     if (!text) {
-  //       console.warn("No text to speak.");
-  //       return;
-  //     }
-  //     const utter = new SpeechSynthesisUtterance(text);
-  //     utter.lang = "en-US";
-  //     utter.rate = 1; // speed 0.5 - 2
-  //     utter.pitch = 1;
-  //     window.speechSynthesis.speak(utter);
-  //   } catch (error) {
-  //     console.error("Speak failed:", error);
-  //   }
-  // },
-  // speak: () => {
-  //   const text = get().speech_text;
-  //   const utter = new SpeechSynthesisUtterance(text);
-  //   utter.lang = "en-US";
-  //   utter.rate = 1; // speed 0.5 - 2
-  //   utter.pitch = 1;
-  //   window.speechSynthesis.speak(utter);
-  // }
+  uploadText: async () => {
+    const text = get().text;
+    console.log(text);
+
+    if (!text) {
+      console.warn("No text to speak.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!res.ok) {
+        throw new Error("TTS request failed");
+      }
+
+      const audioBlob = await res.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      const audio = new Audio(audioUrl);
+      audio.play();
+    } catch (err) {
+      console.error("TTS failed:", err);
+    }
+  },
 }));
