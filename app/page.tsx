@@ -7,6 +7,9 @@ import Toolbar from "@/components/toolbar/toolbar";
 import { WritingMode } from "@/types/toolbar.types";
 import Settings from "@/components/settings/Settings";
 import { useCanvasStore } from "@/store/canvas.store";
+import { useSettingsStore } from "@/store/settings.store";
+import { useSession } from "@/components/session-provider";
+import { Toaster } from "sonner";
 
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
@@ -54,10 +57,14 @@ export default function Home() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const lastTranscriptRef = useRef<string>("");
   const { isFullscreen, text, setText } = useCanvasStore();
+  const session = useSession();
+  const { getUserSettings } = useSettingsStore();
 
-  //   useEffect(() => {
-  //   useCanvasStore.getState().getTTS();
-  // }, []);
+  useEffect(() => {
+    if (session?.user?.id) {
+      getUserSettings(session.user.id);
+    }
+  }, [session?.user?.id, getUserSettings]);
 
   useEffect(() => {
     const SpeechRecognition =
@@ -131,7 +138,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] bg-size-[24px_24px] opacity-30"></div>
       <div
         className={`relative w-full ${
-          isFullscreen ? "sm:h-[70vh] md:h-[90vh] " : "lg:h-full h-[70vh]"
+          isFullscreen ? "sm:h-[70vh] md:h-[90vh] " : "lg:h-[90vh] h-[85vh]"
         } max-w-full`}
       >
         <div className="bg-transparent rounded-2xl w-full h-full border border-gray-700/50 shadow-2xl shadow-black/30 overflow-hidden">
@@ -155,6 +162,7 @@ export default function Home() {
       />
 
       <Settings />
+      <Toaster />
     </main>
   );
 }
