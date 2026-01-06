@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 // for the Text to Speech
 import { KokoroTTS } from "kokoro-js";
+import { useSettingsStore } from "./settings.store";
 
 interface CanvasState {
   text: string;
@@ -16,8 +17,8 @@ interface CanvasState {
   undoLastStroke: () => string | null; // returns current top snapshot or null
   clearStrokes: () => void;
   setCanvasRef: (canvas: HTMLCanvasElement) => void;
-  uploadCanvas: () => Promise<void>;
-  uploadText: () => Promise<void>;
+  uploadCanvas: (language: string) => Promise<void>;
+  uploadText: (language: string) => Promise<void>;
   speech_text: string; // for TTS
   getTTS: () => Promise<KokoroTTS>;
 
@@ -71,7 +72,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     return tts;
   },
 
-  uploadCanvas: async () => {
+  uploadCanvas: async (language: string) => {
     const canvas = get().canvasRef;
     if (!canvas) {
       console.error("Canvas element is not available.");
@@ -128,6 +129,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
       const formData = new FormData();
       formData.append("file", blob, "canvas-image.png");
+      // this is the user selected language for TTS
 
       try {
         const response = await axios.post(uploadUrl, formData, {
@@ -145,7 +147,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           const res = await fetch("/api/tts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: data?.text ?? "" }),
+            body: JSON.stringify({ text: data?.text ?? "", language }),
           });
 
           if (!res.ok) {
@@ -157,14 +159,6 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
           const audio = new Audio(audioUrl);
           audio.play();
-
-          // Text to Speech using Web Speech API
-          // const utter = new SpeechSynthesisUtterance(data?.text ?? "");
-          // utter.lang = "en-US";
-          // utter.rate = 0.5; // speed 0.5 - 2
-          // utter.pitch = 1;
-          // window.speechSynthesis.speak(utter);
-          // set({ speech_text: data?.text ?? "" });
         } else {
           console.error(
             "Failed to upload canvas:",
@@ -203,8 +197,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     }, "image/png");
   },
 
-  uploadText: async () => {
+  uploadText: async (language: string) => {
     const text = get().text;
+    // this is the user selected language for TTS
     console.log(text);
 
     if (!text) {
@@ -212,11 +207,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       return;
     }
 
+    console.log("Zustand", language);
+
     try {
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, language }),
       });
 
       if (!res.ok) {

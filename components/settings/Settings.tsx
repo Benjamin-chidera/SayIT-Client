@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,15 +22,15 @@ import { Button } from "../ui/button";
 import { useSession } from "../session-provider";
 
 const Settings = () => {
-   const session = useSession();
+  const session = useSession();
   const {
     open,
     setOpen,
     updateUserSettings,
     loading,
-    // currentLanguage,
-    // onLanguageChange,
-    // onDeleteAccount
+    language,
+    setLanguage,
+    getUserSettings,
   } = useSettingsStore();
 
   const languages = [
@@ -41,6 +41,14 @@ const Settings = () => {
     { code: "ja-JP", name: "日本語 (日本)" },
     { code: "ko-KR", name: "한국어 (대한민국)" },
   ];
+
+  console.log(language);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      getUserSettings(session.user.id);
+    }
+  }, [session?.user?.id, getUserSettings]);
 
   return (
     <main>
@@ -62,19 +70,21 @@ const Settings = () => {
                   <p className="text-sm text-gray-500 mb-3">
                     Choose the language for speech recognition.
                   </p>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Note: this will be the output to the user{" "}
+                  </p>
 
                   <div>
-                    <Select>
-                      <SelectTrigger className="w-full bg-gray-800/80 border border-gray-700 rounded-lg py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <SelectValue placeholder="Select Language Output" />
+                    <Select value={language} onValueChange={setLanguage}>
+                      <SelectTrigger
+                        id="language-select"
+                        className="w-full bg-gray-800/80 border border-gray-700 rounded-lg py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <SelectValue placeholder="Select language" />
                       </SelectTrigger>
                       <SelectContent>
                         {languages.map((lang) => (
-                          <SelectItem
-                            key={lang.code}
-                            value={lang.code}
-                            // onClick={() => onLanguageChange(lang.code)}
-                          >
+                          <SelectItem key={lang.code} value={lang.code}>
                             {lang.name}
                           </SelectItem>
                         ))}
@@ -91,7 +101,11 @@ const Settings = () => {
                 {/* Gender Selection */}
 
                 {/* save */}
-                <Button onClick={() => updateUserSettings(session?.user?.id)} disabled={loading}>
+                <Button
+                  onClick={() => updateUserSettings(session?.user?.id)}
+                  disabled={loading}
+                  className="w-full"
+                >
                   {loading ? "Saving..." : "Save"}
                 </Button>
                 {/* save */}

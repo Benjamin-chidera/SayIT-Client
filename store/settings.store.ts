@@ -1,5 +1,6 @@
 import axios from "axios";
 import { create } from "zustand";
+import { toast } from "sonner";
 
 interface SettingsState {
   open: boolean;
@@ -25,13 +26,14 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
   loading: false,
 
-  language: "en-US",
+  language: "",
   setLanguage: (language: string) => set({ language }),
 
   getUserSettings: async (userId: string) => {
     try {
       const { data } = await axios.get(`/api/settings/?userId=${userId}`);
       console.log(data);
+      set({ language: data.language, gender: data.gender });
 
       return data;
     } catch (error) {
@@ -47,7 +49,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         language,
         gender,
       });
-      set({ loading: false });
+      set({ loading: false, language, gender, open: false });
+      toast("Event has been created", {
+        description: "Your settings have been updated successfully.",
+        position: "top-right",
+      });
     } catch (error) {
       console.error("Failed to update user settings:", error);
       set({ loading: false });

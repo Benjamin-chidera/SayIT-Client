@@ -23,10 +23,10 @@ interface LogoutBtnProps {
 
 export const LogoutBtn = async ({ session }: LogoutBtnProps) => {
   return (
-    <main className=" fixed mt-10 right-6 md:right-10 cursor-pointer z-50 top-20">
+    <main className=" fixed mt-10 right-6 md:right-12 cursor-pointer z-50 top-20">
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Avatar>
+          <Avatar className="w-10 h-10">
             <AvatarImage
               src={session?.user?.image || "https://github.com/shadcn.png"}
               alt={session?.user?.name}
@@ -37,9 +37,9 @@ export const LogoutBtn = async ({ session }: LogoutBtnProps) => {
         <DropdownMenuContent className=" mr-10">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem >
             <form action={signOutAction}>
-              <Button className=" w-full">Logout</Button>
+              <Button className=" w-30">Logout</Button>
             </form>
           </DropdownMenuItem>
         </DropdownMenuContent>
