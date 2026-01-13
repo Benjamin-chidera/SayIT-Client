@@ -14,6 +14,7 @@ export const Gender = () => {
     if (session?.user?.id) {
       getUserSettings(session.user.id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id]);
 
   return (

@@ -106,6 +106,7 @@ export default function Home() {
     } else {
       console.warn("Speech Recognition not supported in this browser.");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleModeToggle = useCallback(() => {
