@@ -8,29 +8,46 @@ on:
 
 jobs:
   build:
+  # Define the job to run on the latest Ubuntu environment
     runs-on: ubuntu-latest
 
     steps:
+    # Checkout the repository 
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Set up Node.js environment  
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "npm"
 
+    # Install dependencies, run linter, tests, and build the Next.js app
       - name: Install dependencies
         run: npm install
 
+    # Run linter
       - name: Run linter
         run: npm run lint
 
+    # Run tests
       - name: Run tests
         run: npm test --if-present
 
+    # Docker Buildx setup
+      - name: Build Docker image
+        run: docker build -t sayit-client .
+
+    # Run Docker container
+      - name: Run Docker container
+        run: docker run -d -p 3000:3000 sayit-client
+
+      # Build Next.js app
       - name: Build Next.js app
         run: npm run build
+
+        # Set environment variables for the build step
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
