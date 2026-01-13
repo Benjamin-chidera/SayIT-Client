@@ -2,7 +2,6 @@ import { create } from "zustand";
 import axios from "axios";
 // for the Text to Speech
 import { KokoroTTS } from "kokoro-js";
-import { useSettingsStore } from "./settings.store";
 
 interface CanvasState {
   text: string;
