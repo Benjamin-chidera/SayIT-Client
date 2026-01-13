@@ -2,7 +2,7 @@ name: CI - Next.js
 
 on:
   push:
-    branches: [main]
+    branches: [better-auth]
   pull_request:
     branches: [main]
 
