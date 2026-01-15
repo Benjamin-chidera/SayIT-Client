@@ -42,7 +42,7 @@ const Settings = () => {
     { code: "ko-KR", name: "한국어 (대한민국)" },
   ];
 
-  console.log(language);
+  // console.log(language);
 
   useEffect(() => {
     if (session?.user?.id) {
