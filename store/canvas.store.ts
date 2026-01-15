@@ -72,11 +72,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
 
   uploadCanvas: async (language: string) => {
+    // console.log("🎨 uploadCanvas called with language:", language);
+
     const canvas = get().canvasRef;
     if (!canvas) {
-      console.error("Canvas element is not available.");
+      console.error("❌ Canvas element is not available.");
       return;
     }
+
+    // console.log("✅ Canvas ref exists:", canvas);
 
     // Prefer env override, fallback to page host + port
     const envUrl = (process.env.NEXT_PUBLIC_UPLOAD_URL || "")
@@ -84,13 +88,18 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       .replace(/\/$/, "");
     const fallbackPort = process.env.NEXT_PUBLIC_UPLOAD_PORT || "8000";
     let uploadUrl = envUrl;
-    if (!uploadUrl && typeof window !== "undefined") {
+
+    if (envUrl) {
+      // If env URL is provided, use it directly with the endpoint
+      uploadUrl = `${envUrl}/uploadCanvasImg-to-text`;
+    } else if (typeof window !== "undefined") {
+      // Fallback to localhost/same-host for development
       const proto = window.location.protocol;
       const host = window.location.hostname;
       uploadUrl = `${proto}//${host}:${fallbackPort}/uploadCanvasImg-to-text`;
-    } else if (envUrl) {
-      uploadUrl = `${envUrl}/uploadCanvasImg-to-text`;
     }
+
+    console.log("🌐 Upload URL:", uploadUrl);
 
     // Mixed content guard
     if (
@@ -110,7 +119,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
     // Quick connectivity check (fails fast if server unreachable / CORS will still be possible)
     try {
-      await fetch(uploadUrl, { method: "HEAD", mode: "cors" });
+      // await fetch(uploadUrl, { method: "HEAD", mode: "cors" });
     } catch (headErr) {
       console.error("Upload server unreachable (HEAD check failed):", headErr);
       alert(
@@ -122,15 +131,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
     canvas.toBlob(async (blob) => {
       if (!blob) {
-        console.error("Failed to convert canvas to Blob.");
+        console.error("❌ Failed to convert canvas to Blob.");
         return;
       }
 
+      console.log("📦 Blob created, size:", blob.size, "bytes");
+
       const formData = new FormData();
       formData.append("file", blob, "canvas-image.png");
-      // this is the user selected language for TTS
 
       try {
+        console.log("🚀 Sending request to:", uploadUrl);
         const response = await axios.post(uploadUrl, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -138,9 +149,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           timeout: 15000,
         });
 
+        console.log("📥 Response received:", response.status);
+
         if (response.status === 201 || response.status === 200) {
-          console.log("Canvas uploaded successfully!");
+          console.log("✅ Canvas uploaded successfully!");
           const data = response.data;
+          console.log("📝 Response data:", data);
+
           // alert(data?.text ?? "Upload succeeded");
 
           const res = await fetch("/api/tts", {
@@ -167,7 +182,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           alert(`Upload failed: ${response.status}`);
         }
       } catch (err: unknown) {
-        console.error("Error uploading canvas:", err);
+        console.error("❌ Error uploading canvas:", err);
 
         // clearer user messages
         if (axios.isAxiosError(err)) {

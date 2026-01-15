@@ -32,7 +32,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   getUserSettings: async (userId: string) => {
     try {
       const { data } = await axios.get(`/api/settings/?userId=${userId}`);
-      console.log(data);
+      // console.log(data);
       set({ language: data.language, gender: data.gender });
 
       return data;
