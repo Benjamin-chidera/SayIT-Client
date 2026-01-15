@@ -41,7 +41,8 @@ export async function POST(req: Request) {
   // 1️⃣ Translate
   const translation = await client.responses.create({
     model: "gpt-5.2",
-    input: `Translate the following text to ${language}:\n\n${text}. Do not add any explanations, just provide the translated text.`,
+    input: `Translate the following text to ${language}:\n\n${text}.`,
+    instructions: "Just provide the translated text without any additional commentary.",
   });
 
   // console.log(language);
