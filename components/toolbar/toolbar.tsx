@@ -14,6 +14,7 @@ import { useSettingsStore } from "@/store/settings.store";
 import { useCanvasStore } from "@/store/canvas.store";
 import { Send } from "../animate-ui/icons/send";
 import { AnimateIcon } from "../animate-ui/icons/icon";
+import { Loader } from "lucide-react";
 
 interface ToolbarProps {
   mode: WritingMode;
@@ -29,7 +30,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onSpeechAction,
 }) => {
   const { setOpen, language } = useSettingsStore();
-  const { uploadCanvas, uploadText, text } = useCanvasStore();
+  const { uploadCanvas, uploadText, loading } = useCanvasStore();
+
+  // console.log(loading);
 
   const handleUpload = () => {
     uploadCanvas(language);
@@ -45,11 +48,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
             : () => uploadText(language)
         }
         tooltip="Speak"
-        disabled={!text}
+        disabled={loading}
       >
         <AnimateIcon animateOnHover>
-          <Send />
-          {text && <h1>{text}</h1>}
+          {loading ? <Loader /> : <Send />}
         </AnimateIcon>
       </IconButton>
       {/* display only when the user uses the canvas to write */}

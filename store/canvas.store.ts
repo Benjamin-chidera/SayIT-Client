@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import axios from "axios";
 // for the Text to Speech
-import { KokoroTTS } from "kokoro-js";
+// import { KokoroTTS } from "kokoro-js";
+import { toast } from "sonner";
 
 interface CanvasState {
+  loading: boolean;
   text: string;
   setText: (text: string) => void;
   isDrawing: boolean;
@@ -19,7 +21,7 @@ interface CanvasState {
   uploadCanvas: (language: string) => Promise<void>;
   uploadText: (language: string) => Promise<void>;
   speech_text: string; // for TTS
-  getTTS: () => Promise<KokoroTTS>;
+  // getTTS: () => Promise<KokoroTTS>;
 
   // this is to switch btw pen and hand mode
   mode: "pen" | "hand";
@@ -33,9 +35,10 @@ interface CanvasState {
   // speak: () => void;
 }
 
-let tts: KokoroTTS | null = null;
+// let tts: KokoroTTS | null = null;
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
+  loading: false,
   text: "",
   setText: (text: string) => set({ text }),
   speech_text: "",
@@ -61,22 +64,24 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   clearStrokes: () => set({ strokes: [] }),
   setCanvasRef: (canvas) => set({ canvasRef: canvas }),
 
-  // load the TTS model
-  getTTS: async () => {
-    if (!tts) {
-      tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-ONNX", {
-        dtype: "q8",
-      });
-    }
-    return tts;
-  },
+  // // load the TTS model
+  // getTTS: async () => {
+  //   if (!tts) {
+  //     tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-ONNX", {
+  //       dtype: "q8",
+  //     });
+  //   }
+  //   return tts;
+  // },
 
   uploadCanvas: async (language: string) => {
+    set({ loading: true });
     // console.log("🎨 uploadCanvas called with language:", language);
 
     const canvas = get().canvasRef;
     if (!canvas) {
       console.error("❌ Canvas element is not available.");
+      set({ loading: false });
       return;
     }
 
@@ -99,7 +104,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       uploadUrl = `${proto}//${host}:${fallbackPort}/uploadCanvasImg-to-text`;
     }
 
-    console.log("🌐 Upload URL:", uploadUrl);
+    // console.log("🌐 Upload URL:", uploadUrl);
 
     // Mixed content guard
     if (
@@ -107,41 +112,50 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       window.location.protocol === "https:" &&
       uploadUrl.startsWith("http:")
     ) {
-      console.error(
-        "Mixed content: frontend is HTTPS but upload URL is HTTP",
-        uploadUrl
-      );
-      alert(
-        "Upload blocked: page served over HTTPS but upload URL uses HTTP. Use an HTTPS backend or set NEXT_PUBLIC_UPLOAD_URL to an https:// URL."
-      );
+      set({ loading: false });
+      toast.error("Upload blocked", {
+        description:
+          "Page served over HTTPS but upload URL uses HTTP. Use an HTTPS backend or set NEXT_PUBLIC_UPLOAD_URL to an https:// URL.",
+        duration: 5000,
+      });
+      set({ loading: false });
       return;
     }
 
     // Quick connectivity check (fails fast if server unreachable / CORS will still be possible)
     try {
       // await fetch(uploadUrl, { method: "HEAD", mode: "cors" });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (headErr) {
-      console.error("Upload server unreachable (HEAD check failed):", headErr);
-      alert(
-        "Cannot reach upload server. Ensure backend is running, reachable from your tablet (same network), and the URL is correct. " +
-          "If testing from mobile/tablet, set NEXT_PUBLIC_UPLOAD_URL to your machine's LAN IP (e.g. http://192.168.x.y:8000) or use ngrok."
-      );
+      
+      // console.error("Upload server unreachable (HEAD check failed):", headErr);
+      toast.error("Cannot reach upload server", {
+        description:
+          "Ensure backend is running, reachable from your tablet (same network), and the URL is correct. If testing from mobile/tablet, set NEXT_PUBLIC_UPLOAD_URL to your machine's LAN IP (e.g. http://192.168.x.y:8000) or use ngrok.",
+        duration: 5000,
+      });
+      set({ loading: false });
       return;
     }
 
     canvas.toBlob(async (blob) => {
       if (!blob) {
-        console.error("❌ Failed to convert canvas to Blob.");
+        // console.error("❌ Failed to convert canvas to Blob.");
+        toast.error("Failed to read canvas image", {
+          duration: 5000,
+        });
+        
+        set({ loading: false });
         return;
       }
 
-      console.log("📦 Blob created, size:", blob.size, "bytes");
+      // console.log("📦 Blob created, size:", blob.size, "bytes");
 
       const formData = new FormData();
       formData.append("file", blob, "canvas-image.png");
 
       try {
-        console.log("🚀 Sending request to:", uploadUrl);
+        // console.log("🚀 Sending request to:", uploadUrl);
         const response = await axios.post(uploadUrl, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -149,12 +163,12 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           timeout: 15000,
         });
 
-        console.log("📥 Response received:", response.status);
+        // console.log("📥 Response received:", response.status);
 
         if (response.status === 201 || response.status === 200) {
-          console.log("✅ Canvas uploaded successfully!");
+          // console.log("✅ Canvas uploaded successfully!");
           const data = response.data;
-          console.log("📝 Response data:", data);
+          // console.log("📝 Response data:", data);
 
           // alert(data?.text ?? "Upload succeeded");
 
@@ -173,51 +187,74 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
           const audio = new Audio(audioUrl);
           audio.play();
+          set({ loading: false });
         } else {
-          console.error(
-            "Failed to upload canvas:",
-            response.status,
-            response.statusText
-          );
-          alert(`Upload failed: ${response.status}`);
+            // console.error(
+            //   "Failed to upload canvas:",
+            //   response.status,
+            //   response.statusText,
+            // );
+          toast.error("Upload failed", {
+            description: `Server returned status: ${response.status}`,
+            duration: 5000,
+          });
+          set({ loading: false });
         }
       } catch (err: unknown) {
-        console.error("❌ Error uploading canvas:", err);
+        // console.error("❌ Error uploading canvas:", err);
+
+        set({ loading: false });
+
+        // Enhanced error handling for upload errors
 
         // clearer user messages
         if (axios.isAxiosError(err)) {
           // axios-specific error
           if (err.response) {
             // server responded with non-2xx
-            alert(
-              `Server error: ${err.response.status} ${err.response.statusText}`
-            );
+            toast.error("Server error", {
+              description: `${err.response.data.detail}`,
+              duration: 5000,
+            });
           } else if (err.request) {
             // request made but no response -> network / CORS
-            alert(
-              "Network/CORS error: no response from server. Check server CORS headers, firewall, and that the backend is reachable from your device."
-            );
+            toast.error("Network/CORS error", {
+              description:
+                "No response from server. Check server CORS headers, firewall, and that the backend is reachable from your device.",
+              duration: 5000,
+            });
           } else {
-            alert(`Upload error: ${err.message ?? "unknown"}`);
+            toast.error("Upload error", {
+              description: err.message ?? "unknown",
+              duration: 5000,
+            });
           }
         } else if (err instanceof Error) {
           // generic Error
-          alert(`Upload error: ${err.message}`);
+          toast.error("Upload error", {
+            description: err.message,
+            duration: 5000,
+          });
         } else {
           // unknown non-Error value
-          alert("Upload error: unknown");
+          toast.error("Upload error", {
+            description: "An unknown error occurred",
+            duration: 5000,
+          });
         }
       }
     }, "image/png");
   },
 
   uploadText: async (language: string) => {
+    set({ loading: true });
     const text = get().text;
     // this is the user selected language for TTS
     console.log(text);
 
     if (!text) {
       console.warn("No text to speak.");
+      set({ loading: false });
       return;
     }
 
@@ -239,8 +276,16 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
       const audio = new Audio(audioUrl);
       audio.play();
+      set({ loading: false });
     } catch (err) {
       console.error("TTS failed:", err);
+      set({ loading: false });
+      toast.error("TTS failed", {
+        description: err instanceof Error ? err.message : "unknown error",
+        duration: 5000,
+      });
+    } finally {
+      set({ loading: false });
     }
   },
 }));
