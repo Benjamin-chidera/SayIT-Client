@@ -9,8 +9,8 @@ interface SettingsState {
   getUserSettings: (userId: string) => Promise<void>;
   // update user profile
   updateUserSettings: (userId: string) => Promise<void>;
-  gender: string;
-  setGender: (gender: string) => void;
+  gender: "male" | "female";
+  setGender: (gender: "male" | "female") => void;
 
   language: string;
   setLanguage: (language: string) => void;
@@ -21,8 +21,8 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set) => ({
   open: false,
   setOpen: (open: boolean) => set({ open }),
-  gender: "female",
-  setGender: (gender: string) => set({ gender }),
+  gender: "male",
+  setGender: (gender: "male" | "female") => set({ gender }),
 
   loading: false,
 
