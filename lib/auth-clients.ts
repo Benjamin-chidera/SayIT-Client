@@ -8,6 +8,7 @@ export const signInWithGoogle = async () => {
   const data = await authClient.signIn.social({
     provider: "google",
     callbackURL: "/",
+    
     fetchOptions: {
       cache: "no-store",
       next: { revalidate: 0 },

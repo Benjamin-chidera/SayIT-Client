@@ -39,7 +39,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   return (
-    <div className="fixed z-50 bottom-4 left-1/2 -translate-x-1/2 flex gap-4 rounded-full bg-[#1a1a1a]/80 border border-gray-700/50 backdrop-blur-sm p-2 sm:p-0 sm:bg-transparent sm:border-none sm:backdrop-blur-none md:flex-col md:left-auto md:right-4 md:top-1/2 md:-translate-y-1/2 md:translate-x-0 md:mx-6 md:py-2 md:space-y-2 max-w-full md:max-h-[calc(100vh-4rem)] md:overflow-auto overflow-visible">
+    <div className="fixed z-50 sm:mt-10 lg:mt-0 bottom-4 left-1/2 -translate-x-1/2 flex gap-4 rounded-full bg-[#1a1a1a]/80 border border-gray-700/50 backdrop-blur-sm p-2 sm:p-0 sm:bg-transparent sm:border-none sm:backdrop-blur-none md:flex-col md:left-auto md:right-4 md:top-1/2 md:-translate-y-1/2 md:translate-x-0 md:mx-6 md:py-2 md:space-y-2 max-w-full md:max-h-[calc(100vh-4rem)] md:overflow-auto overflow-visible">
       {/* display only when the user uses the canvas to write */}
       <IconButton
         onClick={
