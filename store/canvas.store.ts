@@ -18,8 +18,8 @@ interface CanvasState {
   undoLastStroke: () => string | null; // returns current top snapshot or null
   clearStrokes: () => void;
   setCanvasRef: (canvas: HTMLCanvasElement) => void;
-  uploadCanvas: (language: string, gender: "male" | "female") => Promise<void>;
-  uploadText: (language: string, gender: "male" | "female") => Promise<void>;
+  uploadCanvas: (language: string, gender: string) => Promise<void>;
+  uploadText: (language: string, gender: string) => Promise<void>;
   speech_text: string; // for TTS
   // getTTS: () => Promise<KokoroTTS>;
 
@@ -74,7 +74,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   //   return tts;
   // },
 
-  uploadCanvas: async (language: string, gender: "male" | "female") => {
+  uploadCanvas: async (language: string, gender: string) => {
     set({ loading: true });
     // console.log("🎨 uploadCanvas called with language:", language);
 
@@ -246,7 +246,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     }, "image/png");
   },
 
-  uploadText: async (language: string, gender: "male" | "female") => {
+  uploadText: async (language: string, gender: string) => {
     set({ loading: true });
     const text = get().text;
     // this is the user selected language for TTS
