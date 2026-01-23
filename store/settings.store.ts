@@ -21,7 +21,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set) => ({
   open: false,
   setOpen: (open: boolean) => set({ open }),
-  gender: "female",
+  gender: "male",
   setGender: (gender: string) => set({ gender }),
 
   loading: false,

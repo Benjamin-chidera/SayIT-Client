@@ -29,13 +29,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onModeToggle,
   onSpeechAction,
 }) => {
-  const { setOpen, language } = useSettingsStore();
+  const { setOpen, language, gender } = useSettingsStore();
   const { uploadCanvas, uploadText, loading } = useCanvasStore();
 
   // console.log(loading);
 
   const handleUpload = () => {
-    uploadCanvas(language);
+    uploadCanvas(language, gender);
   };
 
   return (
@@ -45,7 +45,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         onClick={
           mode === WritingMode.Canvas
             ? handleUpload
-            : () => uploadText(language)
+            : () => uploadText(language, gender)
         }
         tooltip="Speak"
         disabled={loading}

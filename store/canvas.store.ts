@@ -18,8 +18,8 @@ interface CanvasState {
   undoLastStroke: () => string | null; // returns current top snapshot or null
   clearStrokes: () => void;
   setCanvasRef: (canvas: HTMLCanvasElement) => void;
-  uploadCanvas: (language: string) => Promise<void>;
-  uploadText: (language: string) => Promise<void>;
+  uploadCanvas: (language: string, gender: string) => Promise<void>;
+  uploadText: (language: string, gender: string) => Promise<void>;
   speech_text: string; // for TTS
   // getTTS: () => Promise<KokoroTTS>;
 
@@ -74,7 +74,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   //   return tts;
   // },
 
-  uploadCanvas: async (language: string) => {
+  uploadCanvas: async (language: string, gender: string) => {
     set({ loading: true });
     // console.log("🎨 uploadCanvas called with language:", language);
 
@@ -175,7 +175,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           const res = await fetch("/api/tts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: data?.text ?? "", language }),
+            body: JSON.stringify({ text: data?.text ?? "", language, gender }),
           });
 
           if (!res.ok) {
@@ -246,7 +246,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     }, "image/png");
   },
 
-  uploadText: async (language: string) => {
+  uploadText: async (language: string, gender: string) => {
     set({ loading: true });
     const text = get().text;
     // this is the user selected language for TTS
@@ -264,7 +264,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, language }),
+        body: JSON.stringify({ text, language, gender }),
       });
 
       if (!res.ok) {
